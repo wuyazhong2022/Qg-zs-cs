@@ -1029,7 +1029,7 @@ function do_duizhan1() {
         sleep(1000);
         text("登录").waitFor();
         ran_sleep();
-        return true;
+        //return true;
       }
     }
     let listview = className("android.widget.ListView").findOne(1000);
