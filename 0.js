@@ -798,9 +798,31 @@ function do_zhuanxiang() {
   return true;
 }
 
+/********趣味答题3合一*********/
+function do_quweidati() {
+    entry_jifen_project("趣味答题");
+
+    // 查找控件
+    var challengeBtn = text("挑战答题").findOne();
+
+    // 根据控件类型执行相应的操作
+    if (challengeBtn != null) {
+        // 执行挑战答题函数
+        
+       do_tiaozhan()
+        
+        
+    } else {
+        // 执行双人四人答题函数
+        do_duizhan1()
+           
+    }
+}
+
+
 /********挑战答题*********/
 function do_tiaozhan() {
-  entry_jifen_project("趣味答题");
+  //entry_jifen_project("趣味答题");
   if (ddtong) {
     fSet("title", "挑战(dd通)…");
   } else {
@@ -842,6 +864,7 @@ function do_tiaozhan() {
     if (total >= max_total) {
       // 题数数够了随便选
       fInfo("已答对" + max_total + "题，全选A");
+      sleep(1000);
       xuan_list[0].child(0).click();
     } else if (ans_list.length != 0) {
       let max_simi = 0;
@@ -900,12 +923,17 @@ function do_tiaozhan() {
 }
 
 /********双人、四人赛*********/
-function do_duizhan1(renshu) {
+function do_duizhan1() {
   //   jifen_list = refind_jifen();
   fClear();
-  if (renshu == 2) {
+  
+      // 查找控件
+
+    var startBtn = text("开始对战").findOne();
+    //var fourPlayersBtn = text("开始比赛").findOne();
+  if (startBtn !== null) {
     // 点击进入双人对战
-    entry_jifen_project("双人对战");
+   // entry_jifen_project("双人对战");
     fSet("title", "双人对战");
     fInfo("等待随机匹配");
     text("随机匹配").waitFor();
@@ -915,9 +943,9 @@ function do_duizhan1(renshu) {
       fInfo("点击：" + match.click());
       sleep(500);
     } while (text("随机匹配").exists());
-  } else if (4 == renshu || 0 == renshu) {
+  } else //if (4 == renshu || 0 == renshu) {
     // 点击进入四人赛
-    entry_jifen_project("四人赛");
+    //entry_jifen_project("四人赛");
     fSet("title", "四人赛");
     // 等待开始比赛并点击
     fInfo("等待开始比赛");
@@ -2562,7 +2590,7 @@ function xxqg(userinfo) {
   c = 1;
   2 != zhuanxiang && ("old" == jifen_flag && "0" == jifen_list.child(jifen_map["专项"]).child(2).text().match(/\d+/)[0] || "new1" == jifen_flag && "0" == jifen_list.child(jifen_map["专项"]).child(3).child(0).text() || "new2" == jifen_flag && "0" == jifen_list.child(jifen_map["专项"]).child(3).text().match(/\d+/)[0]) && (toastLog("专项答题开始"), do_zhuanxiang(), jifen_list = refind_jifen());
   
-  true == quweidati && ("old" == jifen_flag && "已完成" != jifen_list.child(jifen_map["趣味答题"]).child(3).text() || "old" != jifen_flag && "已完成" != jifen_list.child(jifen_map["趣味答题"]).child(4).text()) && (toastLog("趣味答题答题开始"), do_tiaozhan(), jifen_list = refind_jifen());
+  true == quweidati && ("old" == jifen_flag && "已完成" != jifen_list.child(jifen_map["趣味答题"]).child(3).text() || "old" != jifen_flag && "已完成" != jifen_list.child(jifen_map["趣味答题"]).child(4).text()) && (toastLog("趣味答题答题开始"), do_quweidati(), jifen_list = refind_jifen());
   if (ocr_test()) {
     if (true == siren && ("old" == jifen_flag && 3 >= parseInt(jifen_list.child(jifen_map["四人"]).child(2).text().match(/\d+/)[0]) || "new1" == jifen_flag && 3 >= parseInt(jifen_list.child(jifen_map["四人"]).child(3).child(0).text()) || "new2" == jifen_flag && 3 >= parseInt(jifen_list.child(jifen_map["四人"]).child(3).text().match(/\d+/)[0]))) {
       toastLog("四人赛开始");
