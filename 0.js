@@ -800,7 +800,7 @@ function do_zhuanxiang() {
 
 /********挑战答题*********/
 function do_tiaozhan() {
-  entry_jifen_project("挑战答题");
+  entry_jifen_project("趣味答题");
   if (ddtong) {
     fSet("title", "挑战(dd通)…");
   } else {
@@ -2379,9 +2379,9 @@ function login(username, pwd) {
 function refind_jifen() {
   className("android.webkit.WebView").scrollable().findOne().scrollForward();
   var a = className("android.widget.ListView").filter(function (b) {
-    return 10 < b.rowCount()
+    return 8 < b.rowCount()
   }).findOne();
-  21 == a.depth() ? (jifen_flag = "old", fInfo("检测为旧版界面")) : 23 == a.depth() && (jifen_flag = 0 < a.child(0).child(3).childCount() ? "new1" : "new2", fInfo("检测为新版界面"));
+  26 == a.depth() ? (jifen_flag = "old", fInfo("检测为旧版界面")) : 23 == a.depth() && (jifen_flag = 0 < a.child(1).child(2).childCount() ? "new1" : "new2", fInfo("检测为新版界面"));
   return a
 }
 
@@ -2561,7 +2561,8 @@ function xxqg(userinfo) {
   true == meiri && ("old" == jifen_flag && "已完成" != jifen_list.child(jifen_map["每日"]).child(3).text() || "old" != jifen_flag && "已完成" != jifen_list.child(jifen_map["每日"]).child(4).text()) && (toastLog("每日答题开始"), do_meiri(), jifen_list = refind_jifen());
   c = 1;
   2 != zhuanxiang && ("old" == jifen_flag && "0" == jifen_list.child(jifen_map["专项"]).child(2).text().match(/\d+/)[0] || "new1" == jifen_flag && "0" == jifen_list.child(jifen_map["专项"]).child(3).child(0).text() || "new2" == jifen_flag && "0" == jifen_list.child(jifen_map["专项"]).child(3).text().match(/\d+/)[0]) && (toastLog("专项答题开始"), do_zhuanxiang(), jifen_list = refind_jifen());
-  true == tiaozhan && ("old" == jifen_flag && "已完成" != jifen_list.child(jifen_map["挑战"]).child(3).text() || "old" != jifen_flag && "已完成" != jifen_list.child(jifen_map["挑战"]).child(4).text()) && (toastLog("挑战答题开始"), do_tiaozhan(), jifen_list = refind_jifen());
+  
+  true == quweidati && ("old" == jifen_flag && "已完成" != jifen_list.child(jifen_map["趣味答题"]).child(3).text() || "old" != jifen_flag && "已完成" != jifen_list.child(jifen_map["趣味答题"]).child(4).text()) && (toastLog("趣味答题答题开始"), do_tiaozhan(), jifen_list = refind_jifen());
   if (ocr_test()) {
     if (true == siren && ("old" == jifen_flag && 3 >= parseInt(jifen_list.child(jifen_map["四人"]).child(2).text().match(/\d+/)[0]) || "new1" == jifen_flag && 3 >= parseInt(jifen_list.child(jifen_map["四人"]).child(3).child(0).text()) || "new2" == jifen_flag && 3 >= parseInt(jifen_list.child(jifen_map["四人"]).child(3).text().match(/\d+/)[0]))) {
       toastLog("四人赛开始");
@@ -2660,16 +2661,13 @@ function main(userinfo) {
 /********定义全局变量*********/
 var jifen_list, meizhou_dao, zhuanxiang_dao, dingyue_dao, storage_user, name, jinri, zongfen;
 var jifen_map = {
-    "评论": 10,
+    "评论": 6,
     "视频": 2,
     "文章": 1,
-    "每日": 4,
-    "专项": 5,
-    "挑战": 6,
-    "四人": 7,
-    "双人": 8,
-    "订阅": 9,
-    "本地": 11
+    "每日": 3,
+    "趣味答题": 4,
+    "订阅": 5,
+    "本地": 7
   },
   jifen_flag = "old";
 // 分割账号
