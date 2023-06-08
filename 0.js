@@ -999,7 +999,7 @@ function do_duizhan1() {
           sleep(1000);
           text("登录").waitFor();
           ran_sleep();
-          return true;
+          //return true;
         } else if (text("第" + num + "题").exists()) {
           fClear();
           fInfo("第" + num + "题");
