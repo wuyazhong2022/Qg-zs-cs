@@ -943,7 +943,7 @@ function do_duizhan1() {
       fInfo("点击：" + match.click());
       sleep(500);
     } while (text("随机匹配").exists());
-  } else //if (4 == renshu || 0 == renshu) {
+  } else if (4 == renshu || 0 == renshu) {
     // 点击进入四人赛
     //entry_jifen_project("四人赛");
     fSet("title", "四人赛");
@@ -999,7 +999,7 @@ function do_duizhan1() {
           sleep(1000);
           text("登录").waitFor();
           ran_sleep();
-          //return true;
+          return true;
         } else if (text("第" + num + "题").exists()) {
           fClear();
           fInfo("第" + num + "题");
@@ -1029,7 +1029,7 @@ function do_duizhan1() {
         sleep(1000);
         text("登录").waitFor();
         ran_sleep();
-        //return true;
+        return true;
       }
     }
     let listview = className("android.widget.ListView").findOne(1000);
@@ -1329,7 +1329,7 @@ function do_duizhan1() {
       continue;
     }
     num++;
-  }}
+  }
 }
 
 // 对战答错版
