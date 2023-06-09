@@ -1329,7 +1329,7 @@ function do_duizhan1() {
       continue;
     }
     num++;
-  }
+  /}
 }
 
 // 对战答错版
