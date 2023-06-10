@@ -825,7 +825,7 @@ function do_quweidati() {
         // 没有找到相应的控件
         toastLog("未找到开始对战、挑战答题或开始比赛的控件");
     }
-
+}
 /********挑战答题*********/
 function do_tiaozhan() {
   //entry_jifen_project("趣味答题");
