@@ -133,9 +133,9 @@ if (storage.get(engine_version, true)) {
   }
 }
 var w = fInit();
-// console.setTitle("天天向上");
+// console.setTitle("学习助手Pro");
 // console.show();
-fInfo("天天向上Pro" + newest_version + "脚本初始化");
+fInfo("学习助手Pro" + newest_version + "脚本初始化");
 // 初始化宽高
 var [device_w, device_h] = init_wh();
 // log("fina:", device_w, device_h);
@@ -280,9 +280,9 @@ function do_pinglun() {
   content_list = content_list[random(0, content_list.length - 1)];
   content_list || (fTips('评论内容不可设置为空，已重置为"不忘初心，牢记使命"'), content_list = "不忘初心，牢记使命");
   classNameEndsWith("EditText").findOne().setText(content_list);
-  sleep(1000);
+  sleep(3000);
   text("发布").findOne().click();
-  sleep(1000);
+  sleep(3000);
   text("删除").findOne().click();
   sleep(1000);
   text("确认").findOne().click();
@@ -801,24 +801,30 @@ function do_zhuanxiang() {
 /********趣味答题3合一*********/
 function do_quweidati() {
     entry_jifen_project("趣味答题");
+    sleep(3000)
 
     // 查找控件
-    var challengeBtn = text("挑战答题").findOne();
-
+    var startBtn = text("开始对战").findOne(2000);
+    var challengeBtn = text("挑战答题").findOne(2000);
+    var fourPlayersBtn = text("开始比赛").findOne(2000);
     // 根据控件类型执行相应的操作
-    if (challengeBtn != null) {
-        // 执行挑战答题函数
-        
-       do_tiaozhan()
-        
-        
-    } else {
-        // 执行双人四人答题函数
-        do_duizhan1()
-           
-    }
-}
+    if (startBtn != null) {
+        // 调用双人对战答题函数
 
+        fInfo("开始双人答题")
+        do_shuangren();
+    } else if (challengeBtn != null) {
+        // 调用挑战答题函数
+        fInfo("开始挑战答题")
+        do_tiaozhan()
+    } else if (fourPlayersBtn != null) {
+        // 调用四人答题函数
+        fInfo("开始四人答题")
+        do_siren();
+    } else {
+        // 没有找到相应的控件
+        toastLog("未找到开始对战、挑战答题或开始比赛的控件");
+    }
 
 /********挑战答题*********/
 function do_tiaozhan() {
