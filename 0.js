@@ -826,6 +826,797 @@ function do_quweidati() {
         toastLog("未找到开始对战、挑战答题或开始比赛的控件");
     }
 }
+
+/********双人-*********/
+function do_shuangren() {
+  //   jifen_list = refind_jifen();
+  fClear();
+  //if (renshu == 2) {
+    toastLog("点击进入双人对战");
+   // entry_jifen_project("双人对战");
+    fSet("title", "双人对战");
+    fInfo("等待随机匹配");
+    text("随机匹配").waitFor();
+    sleep(1000);
+    let match = text("随机匹配").findOne().parent().child(0);
+    do {
+      fInfo("点击：" + match.click());
+      sleep(500);
+    } while (text("随机匹配").exists());
+  
+  }
+  
+  
+  let delay = Number(jisu);
+  if (delay > 0 && duizhan_mode == 1) {
+    ui.run(function () {
+      let title = w.title.getText();
+      w.title.setText(title + "(固定)");
+      toastLog("这是废弃模式，没有正确率");
+    });
+  } else if (duizhan_mode == 2) {
+    ui.run(function () {
+      let title = w.title.getText();
+      w.title.setText(title + "(手动)");
+      toastLog("请手动点击答案");
+    });
+  }
+  //text("开始").findOne(1000);
+  className("android.widget.ListView").waitFor();
+  fClear();
+  //   if (renshu == 0) {
+  //   }
+  let num = 1;
+  let err_flag = true;
+  while (true) {
+    // 如果是第一题或者下面出错，则跳过前面等待过渡
+    if (num != 1 && err_flag) {
+      // 检查到其中一个过渡界面为止
+      while (true) {
+        // 检测是否结束并退出
+        if (text("继续挑战").exists()) {
+          sleep(1000);
+          let tz_click = text("继续挑战").findOne().click();
+          fInfo("点击继续挑战:" + tz_click);
+          sleep(1500);
+          back();
+          if (renshu == 2) {
+            sleep(1000);
+            fInfo("查找退出按钮");
+            if (fast_mode) {
+              winReshow();
+            }
+            var exit_click = text("退出").findOne().click();
+            fInfo("点击退出:" + exit_click);
+          }
+          sleep(1000);
+          text("登录").waitFor();
+          ran_sleep();
+         // return true;
+        } else if (text("第" + num + "题").exists()) {
+          fClear();
+          fInfo("第" + num + "题");
+          break;
+        }
+      }
+      // 直到过渡界面消失，再匹配下一题
+      while (text("第" + num + "题").exists()) {} //sleep(100);
+      //fTips("题号过渡消失");
+    } else if (!err_flag) {
+      err_flag = true;
+      if (text("继续挑战").exists()) {
+        sleep(1000);
+        let tz_click = text("继续挑战").findOne().click();
+        fInfo("点击继续挑战:" + tz_click);
+        sleep(1500);
+        back();
+        if (renshu == 2) {
+          sleep(1000);
+          fInfo("查找退出按钮");
+          if (fast_mode) {
+            winReshow();
+          }
+          var exit_click = text("退出").findOne().click();
+          fInfo("点击退出:" + exit_click);
+        }
+        sleep(1000);
+        text("登录").waitFor();
+        ran_sleep();
+        //return true;
+      }
+    }
+    let listview = className("android.widget.ListView").findOne(1000);
+    if (!listview) {
+      log("找不到listview");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    sleep(100); // 追求极限速度，不知道会不会出错
+    let view_d28 = className("android.view.View").depth(28).indexInParent(0).findOne(1000);
+    if (!view_d28) {
+      toastLog("找不到view_d28");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    // 根据父框的孩子数
+    if (view_d28.childCount() > 0) {
+      que_x = view_d28.bounds().left;
+      que_y = view_d28.bounds().top;
+      que_w = view_d28.bounds().width();
+      if (view_d28.child(0).text().length <= 4) { //有来源的是前面两个空格元素，文本为4个空格
+        que_h = view_d28.child(2).bounds().top - view_d28.bounds().top;
+      } else { //无来源的是题目，文本为8个空格
+        que_h = view_d28.child(0).bounds().bottom - view_d28.bounds().top;
+      }
+    } else {
+      toastLog("找不到框体");
+      log(view_d28.childCount(), view_d28.bounds());
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    // 查找选项个数
+    var radio_num = className("android.widget.RadioButton").find().length;
+    if (!radio_num) {
+      log("找不到选项");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    //fTips("开始识别题目");
+    for (let i = 0; i < 1; i++) {
+      let img = captureScreen();
+      // 裁剪题干区域，识别题干
+      let que_img = images.clip(img, que_x, que_y, que_w, que_h);
+      //images.save(que_img, '/sdcard/1/que_img' + num + '.png');
+      //       console.time('题目识别1');
+      //       let results = ocr.recognize(que_img).results;
+      //       var que_txt = ocr_rslt_to_txt(results).replace(/[^\u4e00-\u9fa5\d]|^\d{1,2}\.?/g, "");
+      //       console.timeEnd('题目识别1');
+      // 为了适配OCR插件改为下面这句
+      console.time('题目识别');
+
+      if (ocr_choice == 0) {
+        var que_txt = google_ocr_api(que_img).replace(/[^\u4e00-\u9fa5\d]|\d{1,2}\./g, "");
+      } else if (ocr_choice == 1) {
+        var que_txt = paddle_ocr_api(que_img).replace(/[^\u4e00-\u9fa5\d]|\d{1,2}\./g, "");
+      } else {
+        var que_txt = ocr.recognizeText(que_img).replace(/[^\u4e00-\u9fa5\d]|\d{1,2}\./g, "");
+      }
+      console.timeEnd('题目识别');
+      if (que_txt) {
+        fInfo("题目识别：" + que_txt);
+        img.recycle();
+        que_img.recycle();
+        break
+      } else {
+        fError("未识别出题目，可能被禁止截图或无障碍失效");
+        img.recycle();
+        que_img.recycle();
+      }
+    }
+    if (renshu == 0) {
+      fInfo("由于第一局匹配对手较强，正在挂机中。");
+      fInfo("经测试挂机不会扣积分局数，此功能可在配置中关闭");
+      fTips("请不要点击任何选项，不要作答！！！");
+      num++;
+      text("继续挑战").waitFor();
+      continue;
+    }
+    // 选项清洗标识
+    var replace_sign = "default_ocr_replace";
+    let question_reg = new RegExp(update_info["question_reg"], "gi");
+    let include_reg = new RegExp(update_info["include_reg"], "gi");
+    var que_key = null;
+    if (que_key = question_reg.exec(que_txt)) {
+      replace_sign = "other_ocr_replace";
+    } else if (que_key = (/读音|词形/g).exec(que_txt)) {
+      replace_sign = "accent_ocr_replace";
+    } else if (que_key = include_reg.exec(que_txt)) {
+      replace_sign = "include_ocr_replace";
+    }
+
+    let ans_list = get_ans_by_tiku(que_txt);
+    //log(ans_list);
+    let idx_dict = {
+      "A": 0,
+      "B": 1,
+      "C": 2,
+      "D": 3
+    };
+    /************以下是因为随机选项顺序后失效的代码*****************/
+    try { //防止别人先答完出错
+      let idx = 0;
+      if (ans_list.length <= 1) {
+        if (ans_list.length == 1 && idx_dict[ans_list[0][0]] != undefined) {
+          idx = idx_dict[ans_list[0][0]];
+          fTips("答案:" + ans_list[0].slice(2));
+          //           fInfo("答案:"+ ans_list[0]);
+        } else if (ans_list.length == 0) {
+          fInfo("未找到答案");
+        }
+        if (duizhan_mode == 1) {
+          if (delay > 0 && num != 1) {
+            sleep(random(delay, delay + 50));
+          } else {
+            // 直到选项完全出现在屏幕
+            while (className("android.widget.ListView").findOne(1000).indexInParent() == 0) {}
+          }
+          let is_click = className("android.widget.RadioButton").findOnce(idx).parent().click();
+          log(is_click);
+          if (!is_click) {
+            sleep(200);
+            log(className("android.widget.RadioButton").findOnce(idx).parent().click());
+          }
+          num++;
+          continue;
+        } else if (duizhan_mode == 2) {
+          num++;
+          textMatches(/第.+题|继续挑战/).waitFor();
+          continue;
+        }
+      }
+    } catch (e) {
+      log("error1:", e);
+    }
+    /************以上是因为随机选项顺序后失效的代码*****************/
+
+
+    // 如果上面答案不唯一或者不包含找到的选项，直到选项完全出现在屏幕
+    try {
+      while (className("android.widget.ListView").findOne(1000).indexInParent() == 0) {}
+      //fTips("选项显现");
+    } catch (e) {
+      log("error2:", e);
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    let xuanxiang_list = className("android.widget.ListView").findOne(1000);
+    let xuanxiang_index = xuanxiang_list.indexInParent();
+    let xuanxiang_list_x = xuanxiang_list.bounds().left;
+    let xuanxiang_list_y = xuanxiang_list.bounds().top;
+    let xuanxiang_list_w = xuanxiang_list.bounds().width();
+    let xuanxiang_list_h = xuanxiang_list.bounds().height();
+
+    if (!xuanxiang_list || !xuanxiang_list.parent().childCount() || !xuanxiang_list.parent().child(0)) {
+      log("xuan_box is null");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    log("开始截选项");
+    console.time("选项识别");
+    img = captureScreen();
+    // 裁剪所有选项区域
+    img = images.clip(img, xuanxiang_list_x, xuanxiang_list_y, xuanxiang_list_w, xuanxiang_list_h);
+    //images.save(allx_img, '/sdcard/1/x_img' + num + '.png');
+    let xuan_txt_list = [];
+    let allx_txt = "";
+    if (ocr_choice == 0) {
+      // 排序顺序
+      //     console.time('选项识别1');
+      let x_results = JSON.parse(JSON.stringify(gmlkit.ocr(img, "zh").toArray(3)));
+      allx_txt = ocr_rslt_to_txt(x_results).replace(/\s+/g, "");
+      //     console.timeEnd('选项识别1');
+    } else if (ocr_choice == 1) {
+      let x_results = JSON.parse(JSON.stringify(paddle.ocr(img)));
+      allx_txt = ocr_rslt_to_txt(x_results).replace(/\s+/g, "");
+    } else {
+      //     // 直接识别
+      //     console.time('选项识别2');
+      allx_txt = ocr.recognizeText(img);
+      //     console.timeEnd('选项识别2');
+    }
+    console.timeEnd("选项识别");
+    // log(allx_txt);
+    if (!allx_txt) {
+      log("识别不出选项文本，可能被禁止截图");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    img.recycle();
+    // 清洗选项文本
+    log("replace_sign:" + replace_sign);
+    log("清洗前：" + allx_txt);
+    let replace_d = update_info[replace_sign];
+    if (replace_sign == "include_ocr_replace") {
+      let result = true;
+      log("que_key:" + que_key);
+      let [words, r, repl] = replace_d[que_key];
+      for (let word of words) {
+        let reg = new RegExp(word, "gi");
+        if (!reg.test(allx_txt)) {
+          result = false;
+          break;
+        }
+      }
+      if (result) {
+        let reg = new RegExp(r, "gi");
+        allx_txt = allx_txt.replace(reg, repl);
+      }
+    } else {
+      for (let r of Object.keys(replace_d)) {
+        let reg = new RegExp(r, "gi");
+        allx_txt = allx_txt.replace(reg, replace_d[r]);
+      }
+    }
+    // allx_txt.replace(/令媛/g, "令嫒");
+    // 获取选项列表
+    xuan_txt_list = allx_txt.match(/[a-d][^a-z\u4e00-\u9fa5\d]?\s*.*?(?=[a-d][^a-z\u4e00-\u9fa5\d]?|$)/gi);
+    if (!xuan_txt_list) {
+      log("识别不出选项");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    if (xuan_txt_list && xuan_txt_list.length != radio_num) {
+      xuan_txt_list = allx_txt.match(/[a-d][^a-z\u4e00-\u9fa5\d]\s*.*?(?=[a-d][^a-z\u4e00-\u9fa5\d]|$)/gi);
+    }
+    log(xuan_txt_list.toString());
+
+    if (xuan_txt_list.length != 0) {
+      let max_simi = 0;
+      let right_xuan = '';
+      let right_xuan2 = '';
+      let ans_txt = '';
+      for (let xuan_txt of xuan_txt_list) {
+        let txt = xuan_txt.replace(/^[A-Z]\.?/gi, "");;
+        for (let ans of ans_list) {
+          let similar = str_similar(ans.slice(2), txt);
+          if (similar > max_simi) {
+            max_simi = similar;
+            ans_txt = ans;
+            if (duizhan_mode == 1) {
+              // 答案默认顺序优先
+              right_xuan = ans[0];
+              right_xuan2 = xuan_txt[0].toUpperCase();
+            } else {
+              // 文本匹配优先
+              right_xuan2 = ans[0];
+              right_xuan = xuan_txt[0].toUpperCase();
+            }
+          }
+        }
+      }
+      if (ans_list.length > 1) {
+        fTips("匹配答案:" + ans_txt);
+      }
+      if (right_xuan != '' && duizhan_mode != 2) {
+        let idx = idx_dict[right_xuan];
+        fInfo("最终:" + right_xuan);
+        try {
+          className("android.widget.RadioButton").findOnce(idx).parent().click();
+        } catch (e) {
+          idx = idx_dict[right_xuan2];
+          fInfo("备选:" + right_xuan2);
+          try {
+            className("android.widget.RadioButton").findOnce(idx).parent().click();
+          } catch (e1) {
+            log("error3:", e1);
+            err_flag = false;
+            sleep(200);
+            continue;
+          }
+        }
+        //log(a);
+      } else if (duizhan_mode == 2) {
+        textMatches(/第.+题|继续挑战/).waitFor();
+      } else {
+        try {
+          className("android.widget.RadioButton").findOnce().parent().click();
+        } catch (e1) {
+          log("error4:", e1);
+          err_flag = false;
+          sleep(200);
+          continue;
+        }
+      }
+    } else {
+      fError("未识别出选项，随机选择");
+      className("android.widget.RadioButton").findOnce(random(0, radio_num - 1)).parent().click();
+      err_flag = false;
+      continue;
+    }
+    num++;
+  }
+
+/********四人赛*********/
+function do_siren() {
+  //   jifen_list = refind_jifen();
+  fClear();
+ 
+    // 点击进入四人赛
+  //  entry_jifen_project("四人赛");
+    fSet("title", "四人赛");
+    // 等待开始比赛并点击
+    fInfo("等待开始比赛");
+    text("开始比赛").waitFor();
+    sleep(1000);
+    let start_click = text("开始比赛").findOne().click();
+    fInfo("点击：" + start_click);
+  
+  let delay = Number(jisu);
+  if (delay > 0 && duizhan_mode == 1) {
+    ui.run(function () {
+      let title = w.title.getText();
+      w.title.setText(title + "(固定)");
+      toastLog("这是废弃模式，没有正确率");
+    });
+  } else if (duizhan_mode == 2) {
+    ui.run(function () {
+      let title = w.title.getText();
+      w.title.setText(title + "(手动)");
+      toastLog("请手动点击答案");
+    });
+  }
+  //text("开始").findOne(1000);
+  className("android.widget.ListView").waitFor();
+  fClear();
+  //   if (renshu == 0) {
+  //   }
+  let num = 1;
+  let err_flag = true;
+  while (true) {
+    // 如果是第一题或者下面出错，则跳过前面等待过渡
+    if (num != 1 && err_flag) {
+      // 检查到其中一个过渡界面为止
+      while (true) {
+        // 检测是否结束并退出
+        if (text("继续挑战").exists()) {
+          sleep(1000);
+          let tz_click = text("继续挑战").findOne().click();
+          fInfo("点击继续挑战:" + tz_click);
+          sleep(1500);
+          back();
+          if (renshu == 2) {
+            sleep(1000);
+            fInfo("查找退出按钮");
+            if (fast_mode) {
+              winReshow();
+            }
+            var exit_click = text("退出").findOne().click();
+            fInfo("点击退出:" + exit_click);
+          }
+          sleep(1000);
+          text("登录").waitFor();
+          ran_sleep();
+          return true;
+        } else if (text("第" + num + "题").exists()) {
+          fClear();
+          fInfo("第" + num + "题");
+          break;
+        }
+      }
+      // 直到过渡界面消失，再匹配下一题
+      while (text("第" + num + "题").exists()) {} //sleep(100);
+      //fTips("题号过渡消失");
+    } else if (!err_flag) {
+      err_flag = true;
+      if (text("继续挑战").exists()) {
+        sleep(1000);
+        let tz_click = text("继续挑战").findOne().click();
+        fInfo("点击继续挑战:" + tz_click);
+        sleep(1500);
+        back();
+        if (renshu == 2) {
+          sleep(1000);
+          fInfo("查找退出按钮");
+          if (fast_mode) {
+            winReshow();
+          }
+          var exit_click = text("退出").findOne().click();
+          fInfo("点击退出:" + exit_click);
+        }
+        sleep(1000);
+        text("登录").waitFor();
+        ran_sleep();
+        return true;
+      }
+    }
+    let listview = className("android.widget.ListView").findOne(1000);
+    if (!listview) {
+      log("找不到listview");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    sleep(100); // 追求极限速度，不知道会不会出错
+    let view_d28 = className("android.view.View").depth(28).indexInParent(0).findOne(1000);
+    if (!view_d28) {
+      toastLog("找不到view_d28");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    // 根据父框的孩子数
+    if (view_d28.childCount() > 0) {
+      que_x = view_d28.bounds().left;
+      que_y = view_d28.bounds().top;
+      que_w = view_d28.bounds().width();
+      if (view_d28.child(0).text().length <= 4) { //有来源的是前面两个空格元素，文本为4个空格
+        que_h = view_d28.child(2).bounds().top - view_d28.bounds().top;
+      } else { //无来源的是题目，文本为8个空格
+        que_h = view_d28.child(0).bounds().bottom - view_d28.bounds().top;
+      }
+    } else {
+      toastLog("找不到框体");
+      log(view_d28.childCount(), view_d28.bounds());
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    // 查找选项个数
+    var radio_num = className("android.widget.RadioButton").find().length;
+    if (!radio_num) {
+      log("找不到选项");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    //fTips("开始识别题目");
+    for (let i = 0; i < 1; i++) {
+      let img = captureScreen();
+      // 裁剪题干区域，识别题干
+      let que_img = images.clip(img, que_x, que_y, que_w, que_h);
+      //images.save(que_img, '/sdcard/1/que_img' + num + '.png');
+      //       console.time('题目识别1');
+      //       let results = ocr.recognize(que_img).results;
+      //       var que_txt = ocr_rslt_to_txt(results).replace(/[^\u4e00-\u9fa5\d]|^\d{1,2}\.?/g, "");
+      //       console.timeEnd('题目识别1');
+      // 为了适配OCR插件改为下面这句
+      console.time('题目识别');
+
+      if (ocr_choice == 0) {
+        var que_txt = google_ocr_api(que_img).replace(/[^\u4e00-\u9fa5\d]|\d{1,2}\./g, "");
+      } else if (ocr_choice == 1) {
+        var que_txt = paddle_ocr_api(que_img).replace(/[^\u4e00-\u9fa5\d]|\d{1,2}\./g, "");
+      } else {
+        var que_txt = ocr.recognizeText(que_img).replace(/[^\u4e00-\u9fa5\d]|\d{1,2}\./g, "");
+      }
+      console.timeEnd('题目识别');
+      if (que_txt) {
+        fInfo("题目识别：" + que_txt);
+        img.recycle();
+        que_img.recycle();
+        break
+      } else {
+        fError("未识别出题目，可能被禁止截图或无障碍失效");
+        img.recycle();
+        que_img.recycle();
+      }
+    }
+    if (renshu == 0) {
+      fInfo("由于第一局匹配对手较强，正在挂机中。");
+      fInfo("经测试挂机不会扣积分局数，此功能可在配置中关闭");
+      fTips("请不要点击任何选项，不要作答！！！");
+      num++;
+      text("继续挑战").waitFor();
+      continue;
+    }
+    // 选项清洗标识
+    var replace_sign = "default_ocr_replace";
+    let question_reg = new RegExp(update_info["question_reg"], "gi");
+    let include_reg = new RegExp(update_info["include_reg"], "gi");
+    var que_key = null;
+    if (que_key = question_reg.exec(que_txt)) {
+      replace_sign = "other_ocr_replace";
+    } else if (que_key = (/读音|词形/g).exec(que_txt)) {
+      replace_sign = "accent_ocr_replace";
+    } else if (que_key = include_reg.exec(que_txt)) {
+      replace_sign = "include_ocr_replace";
+    }
+
+    let ans_list = get_ans_by_tiku(que_txt);
+    //log(ans_list);
+    let idx_dict = {
+      "A": 0,
+      "B": 1,
+      "C": 2,
+      "D": 3
+    };
+    /************以下是因为随机选项顺序后失效的代码*****************/
+    try { //防止别人先答完出错
+      let idx = 0;
+      if (ans_list.length <= 1) {
+        if (ans_list.length == 1 && idx_dict[ans_list[0][0]] != undefined) {
+          idx = idx_dict[ans_list[0][0]];
+          fTips("答案:" + ans_list[0].slice(2));
+          //           fInfo("答案:"+ ans_list[0]);
+        } else if (ans_list.length == 0) {
+          fInfo("未找到答案");
+        }
+        if (duizhan_mode == 1) {
+          if (delay > 0 && num != 1) {
+            sleep(random(delay, delay + 50));
+          } else {
+            // 直到选项完全出现在屏幕
+            while (className("android.widget.ListView").findOne(1000).indexInParent() == 0) {}
+          }
+          let is_click = className("android.widget.RadioButton").findOnce(idx).parent().click();
+          log(is_click);
+          if (!is_click) {
+            sleep(200);
+            log(className("android.widget.RadioButton").findOnce(idx).parent().click());
+          }
+          num++;
+          continue;
+        } else if (duizhan_mode == 2) {
+          num++;
+          textMatches(/第.+题|继续挑战/).waitFor();
+          continue;
+        }
+      }
+    } catch (e) {
+      log("error1:", e);
+    }
+    /************以上是因为随机选项顺序后失效的代码*****************/
+
+
+    // 如果上面答案不唯一或者不包含找到的选项，直到选项完全出现在屏幕
+    try {
+      while (className("android.widget.ListView").findOne(1000).indexInParent() == 0) {}
+      //fTips("选项显现");
+    } catch (e) {
+      log("error2:", e);
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    let xuanxiang_list = className("android.widget.ListView").findOne(1000);
+    let xuanxiang_index = xuanxiang_list.indexInParent();
+    let xuanxiang_list_x = xuanxiang_list.bounds().left;
+    let xuanxiang_list_y = xuanxiang_list.bounds().top;
+    let xuanxiang_list_w = xuanxiang_list.bounds().width();
+    let xuanxiang_list_h = xuanxiang_list.bounds().height();
+
+    if (!xuanxiang_list || !xuanxiang_list.parent().childCount() || !xuanxiang_list.parent().child(0)) {
+      log("xuan_box is null");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    log("开始截选项");
+    console.time("选项识别");
+    img = captureScreen();
+    // 裁剪所有选项区域
+    img = images.clip(img, xuanxiang_list_x, xuanxiang_list_y, xuanxiang_list_w, xuanxiang_list_h);
+    //images.save(allx_img, '/sdcard/1/x_img' + num + '.png');
+    let xuan_txt_list = [];
+    let allx_txt = "";
+    if (ocr_choice == 0) {
+      // 排序顺序
+      //     console.time('选项识别1');
+      let x_results = JSON.parse(JSON.stringify(gmlkit.ocr(img, "zh").toArray(3)));
+      allx_txt = ocr_rslt_to_txt(x_results).replace(/\s+/g, "");
+      //     console.timeEnd('选项识别1');
+    } else if (ocr_choice == 1) {
+      let x_results = JSON.parse(JSON.stringify(paddle.ocr(img)));
+      allx_txt = ocr_rslt_to_txt(x_results).replace(/\s+/g, "");
+    } else {
+      //     // 直接识别
+      //     console.time('选项识别2');
+      allx_txt = ocr.recognizeText(img);
+      //     console.timeEnd('选项识别2');
+    }
+    console.timeEnd("选项识别");
+    // log(allx_txt);
+    if (!allx_txt) {
+      log("识别不出选项文本，可能被禁止截图");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    img.recycle();
+    // 清洗选项文本
+    log("replace_sign:" + replace_sign);
+    log("清洗前：" + allx_txt);
+    let replace_d = update_info[replace_sign];
+    if (replace_sign == "include_ocr_replace") {
+      let result = true;
+      log("que_key:" + que_key);
+      let [words, r, repl] = replace_d[que_key];
+      for (let word of words) {
+        let reg = new RegExp(word, "gi");
+        if (!reg.test(allx_txt)) {
+          result = false;
+          break;
+        }
+      }
+      if (result) {
+        let reg = new RegExp(r, "gi");
+        allx_txt = allx_txt.replace(reg, repl);
+      }
+    } else {
+      for (let r of Object.keys(replace_d)) {
+        let reg = new RegExp(r, "gi");
+        allx_txt = allx_txt.replace(reg, replace_d[r]);
+      }
+    }
+    // allx_txt.replace(/令媛/g, "令嫒");
+    // 获取选项列表
+    xuan_txt_list = allx_txt.match(/[a-d][^a-z\u4e00-\u9fa5\d]?\s*.*?(?=[a-d][^a-z\u4e00-\u9fa5\d]?|$)/gi);
+    if (!xuan_txt_list) {
+      log("识别不出选项");
+      err_flag = false;
+      sleep(200);
+      continue;
+    }
+    if (xuan_txt_list && xuan_txt_list.length != radio_num) {
+      xuan_txt_list = allx_txt.match(/[a-d][^a-z\u4e00-\u9fa5\d]\s*.*?(?=[a-d][^a-z\u4e00-\u9fa5\d]|$)/gi);
+    }
+    log(xuan_txt_list.toString());
+
+    if (xuan_txt_list.length != 0) {
+      let max_simi = 0;
+      let right_xuan = '';
+      let right_xuan2 = '';
+      let ans_txt = '';
+      for (let xuan_txt of xuan_txt_list) {
+        let txt = xuan_txt.replace(/^[A-Z]\.?/gi, "");;
+        for (let ans of ans_list) {
+          let similar = str_similar(ans.slice(2), txt);
+          if (similar > max_simi) {
+            max_simi = similar;
+            ans_txt = ans;
+            if (duizhan_mode == 1) {
+              // 答案默认顺序优先
+              right_xuan = ans[0];
+              right_xuan2 = xuan_txt[0].toUpperCase();
+            } else {
+              // 文本匹配优先
+              right_xuan2 = ans[0];
+              right_xuan = xuan_txt[0].toUpperCase();
+            }
+          }
+        }
+      }
+      if (ans_list.length > 1) {
+        fTips("匹配答案:" + ans_txt);
+      }
+      if (right_xuan != '' && duizhan_mode != 2) {
+        let idx = idx_dict[right_xuan];
+        fInfo("最终:" + right_xuan);
+        try {
+          className("android.widget.RadioButton").findOnce(idx).parent().click();
+        } catch (e) {
+          idx = idx_dict[right_xuan2];
+          fInfo("备选:" + right_xuan2);
+          try {
+            className("android.widget.RadioButton").findOnce(idx).parent().click();
+          } catch (e1) {
+            log("error3:", e1);
+            err_flag = false;
+            sleep(200);
+            continue;
+          }
+        }
+        //log(a);
+      } else if (duizhan_mode == 2) {
+        textMatches(/第.+题|继续挑战/).waitFor();
+      } else {
+        try {
+          className("android.widget.RadioButton").findOnce().parent().click();
+        } catch (e1) {
+          log("error4:", e1);
+          err_flag = false;
+          sleep(200);
+          continue;
+        }
+      }
+    } else {
+      fError("未识别出选项，随机选择");
+      className("android.widget.RadioButton").findOnce(random(0, radio_num - 1)).parent().click();
+      err_flag = false;
+      continue;
+    }
+    num++;
+  }
+}
+
 /********挑战答题*********/
 function do_tiaozhan() {
   //entry_jifen_project("趣味答题");
