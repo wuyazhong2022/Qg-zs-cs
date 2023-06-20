@@ -135,7 +135,7 @@ if (storage.get(engine_version, true)) {
 var w = fInit();
 // console.setTitle("学习助手");
 // console.show();
-toastlog("学习助手Pro" + newest_version + "脚本初始化");
+toastLog("学习助手Pro" + newest_version + "脚本初始化");
 // 初始化宽高
 var [device_w, device_h] = init_wh();
 // toastlog("fina:", device_w, device_h);
