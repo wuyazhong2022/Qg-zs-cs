@@ -122,11 +122,11 @@ sleep(delay_time);
 var storage = storages.create('songgedodo');
 // 脚本版本号
 var last_version = "V12.0";
-var engine_version = "V12.5";
-var newest_version = "V12.5";
+var engine_version = "V12.6";
+var newest_version = "V12.6";
 if (storage.get(engine_version, true)) {
     storage.remove(last_version);
-        let gengxin_rows = "脚本有风险，仅供学习交流;更新内容：;1.自启动强国改为手动打开强国app防检测，;2.可自定义滑动验证界面震动提醒时间;3.自定义评论内容;4.趣味答题已修复；脚本测试环境：强国V2.46.0；（点击取消不再提示）".split(";");
+        let gengxin_rows = "脚本有风险，仅供学习交流;更新内容：;1.自启动强国改为手动打开强国app防检测，;2.趣味答题已修复，点击答案选项增加了随机延时；3.最新下载地址https://www.jiebeih.top/1778.html脚本测试环境：强国V2.46.0；（点击取消不再提示）".split(";");
     let is_show = confirm(engine_version + "版更新内容", gengxin_rows.join("\n"));
     if (!is_show) {
         storage.put(engine_version, false);
@@ -1573,12 +1573,13 @@ function do_bendi() {
 // 做一次题
 function do_exec(type) {
     // 等待加载
+    sleep(2000);
     let tishi = text("查看提示").findOne();
     //log(tishi);
     // 点击查看提示按钮
     tishi.click();
     // 随机延迟、等待提示
-    ran_sleep();
+    ran_sleep1();
     // 等待加载
     text("提示").waitFor();
 
@@ -3095,11 +3096,13 @@ function do_siren() {
                 let idx = idx_dict[right_xuan];
                 fInfo("最终:" + right_xuan);
                 try {
+                    sleep(15000);
                     className("android.widget.RadioButton").findOnce(idx).parent().click();
                 } catch (e) {
                     idx = idx_dict[right_xuan2];
                     fInfo("备选:" + right_xuan2);
                     try {
+                        sleep(15000);
                         className("android.widget.RadioButton").findOnce(idx).parent().click();
                     } catch (e1) {
                         log("error3:", e1);
@@ -3113,6 +3116,7 @@ function do_siren() {
                 textMatches(/第.+题|继续挑战/).waitFor();
             } else {
                 try {
+                    sleep(15000);
                     className("android.widget.RadioButton").findOnce().parent().click();
                 } catch (e1) {
                     log("error4:", e1);
@@ -3170,9 +3174,11 @@ function do_quweidati() {
 
 /********双人-*********/
 function do_shuangren() {
-    
+    //   jifen_list = refind_jifen();
     fClear();
-    
+    //if (renshu == 2) {
+    // 点击进入双人对战
+    // entry_jifen_project("双人对战");
     fSet("title", "双人对战");
     fInfo("等待随机匹配");
     text("随机匹配").waitFor();
@@ -3203,8 +3209,8 @@ if (delay > 0 && duizhan_mode == 1) {
 //text("开始").findOne(1000);
 className("android.widget.ListView").waitFor();
 fClear();
-// //   if (renshu == 0) {
-// //   }
+//   if (renshu == 0) {
+//   }
 let num = 1;
 let err_flag = true;
 while (true) {
@@ -3217,8 +3223,6 @@ while (true) {
                 sleep(1000);
                 let tz_click = text("继续挑战").findOne().click();
                 fInfo("点击继续挑战:" + tz_click);
-                sleep(1500);
-                back();
                 sleep(1500);
                 back();
                 if (renshu == 2) {
